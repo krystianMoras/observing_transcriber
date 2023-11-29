@@ -25,6 +25,7 @@ jobs:
       run: |
         BUILD_NUMBER="$(git rev-list --count HEAD)"
         SHORT_HASH="$(git rev-parse --short=7 HEAD)"
+        SAFE_NAME=$(echo "${{ env.BRANCH_NAME }}" | tr '/' '-')
         echo "name=${SAFE_NAME}-b${BUILD_NUMBER}-${SHORT_HASH}" >> $GITHUB_OUTPUT
         
     - name: Build EXE
