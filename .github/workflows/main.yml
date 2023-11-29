@@ -25,8 +25,7 @@ jobs:
       run: |
         BUILD_NUMBER="$(git rev-list --count HEAD)"
         SHORT_HASH="$(git rev-parse --short=7 HEAD)"
-        SAFE_NAME=$(echo "${{ env.BRANCH_NAME }}" | tr '/' '-')
-        echo "name=${SAFE_NAME}-b${BUILD_NUMBER}-${SHORT_HASH}" >> $GITHUB_OUTPUT
+        echo "name=b${BUILD_NUMBER}-${SHORT_HASH}" >> $GITHUB_OUTPUT
         
     - name: Build EXE
       run: make build_github_actions
@@ -34,8 +33,7 @@ jobs:
     - name: Release with Notes
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          dist/*
+        files: dist/*
         tag_name: ${{ steps.tag.outputs.name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
