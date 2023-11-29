@@ -19,9 +19,14 @@ jobs:
         python-version: '3.11.3'
 
     # add tag
-    - name: Add tag
-      run: git tag -a v${{ github.run_number }} -m "v${{ github.run_number }}"
-      
+    - name: Determine tag name
+      id: tag
+      shell: bash
+      run: |
+        BUILD_NUMBER="$(git rev-list --count HEAD)"
+        SHORT_HASH="$(git rev-parse --short=7 HEAD)"
+        echo "name=${SAFE_NAME}-b${BUILD_NUMBER}-${SHORT_HASH}" >> $GITHUB_OUTPUT
+        
     - name: Build EXE
       run: make build_github_actions
 
@@ -30,5 +35,6 @@ jobs:
       with:
         files: |
           dist/*
+        tag_name: ${{ steps.tag.outputs.name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
