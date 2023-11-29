@@ -12,7 +12,7 @@ help:
 
 install:
 	@if [ -z $(POETRY) ]; then echo "Poetry could not be found. See https://python-poetry.org/docs/"; exit 2; fi
-	pip install av --no-use-pep517
+	$(POETRY) run python -m pip install av --no-use-pep517
 	$(POETRY) install
 
 run:
