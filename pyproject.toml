@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "observing-transcriber"
+version = "0.1.0"
+description = "simple script that watches for changes in folder and automatically transcribes new files, easily configurable"
+authors = ["krystianMoras <krystian.moras@student.put.poznan.pl>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+faster-whisper = "^0.10.0"
+watchfiles = "^0.21.0"
+asyncio = "^3.4.3"
+srt = "^3.5.3"
+pyinstaller = "^6.2.0"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.1.6"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
