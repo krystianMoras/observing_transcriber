@@ -24,7 +24,7 @@ jobs:
       run: make install
 
     - name: Build EXE
-      run: make build_exe
+      run: make build_github_actions
 
       # add exe to release
 
