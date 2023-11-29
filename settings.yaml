@@ -1,17 +1,6 @@
-# whisper settings
-# one of https://huggingface.co/Systran or path to local model
 model_path_or_id: small.en
-
 device: cpu
-
-# file settings
-observed_path: <SET PATH TO OBSERVED FOLDER>
-transcription_destination_path: <WHERE YOU WANT TO SAVE TRANSCRIPTIONS>
-
-# optional
-
-# if you want to keep original audio files, save them in this path
-processed_files_path: 
-
-# wait for this many seconds before starting transcription
-upload_lag: 1
+observed_path: C:/Users/kryst/Documents/Sound recordings
+transcription_destination_path: C:/Users/kryst/Documents/transcriptions
+processed_files_path: ''
+upload_lag: 10
