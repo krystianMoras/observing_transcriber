@@ -27,5 +27,3 @@ build_github_actions:
 	pip install faster-whisper==0.10.0 watchfiles==0.21.0 asyncio==3.4.3 srt==3.5.3 pyinstaller==6.2.0
 	pyinstaller --onefile --clean --name observing_transcriber watcher.py --add-data "settings.yaml:."
 	cp settings.yaml dist/settings.yaml
-	# zip the dist folder
-	powershell Compress-Archive -Path dist/* -DestinationPath dist.zip

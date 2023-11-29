@@ -30,6 +30,9 @@ jobs:
     - name: Build EXE
       run: make build_github_actions
 
+    - name: Zip EXE
+      run: 7z a dist.zip dist
+      
     - name: Release with Notes
       uses: softprops/action-gh-release@v1
       with:
