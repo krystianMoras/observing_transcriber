@@ -5,7 +5,7 @@ a = Analysis(
     ['watcher.py'],
     pathex=[],
     binaries=[],
-    datas=[('settings.yaml', '.')],
+    datas=[],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

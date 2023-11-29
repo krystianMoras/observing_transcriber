@@ -30,11 +30,13 @@ jobs:
     - name: Build EXE
       run: make build_github_actions
       
+    - name: Zip EXE
+      run: 7z a dist.zip dist
+
     - name: Release with Notes
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          dist/*
+        files: dist.zip
         tag_name: ${{ steps.tag.outputs.name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

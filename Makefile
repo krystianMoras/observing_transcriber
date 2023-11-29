@@ -18,9 +18,11 @@ run:
 	$(POETRY) run python watcher.py
 
 build_exe:
-	$(POETRY) run pyinstaller --onefile --clean --name observing_transcriber watcher.py --add-data "settings.yaml:." --windowed
+	$(POETRY) run pyinstaller --onefile --clean --name observing_transcriber watcher.py --windowed
+	cp settings.yaml dist/settings.yaml
 build_github_actions:
 	echo "cython<3.0" >> c.txt
 	PIP_CONSTRAINT=c.txt pip install av==10.0.0
 	pip install faster-whisper==0.10.0 watchfiles==0.21.0 asyncio==3.4.3 srt==3.5.3 pyinstaller==6.2.0
-	pyinstaller --onefile --clean --name observing_transcriber watcher.py --add-data "settings.yaml:." --windowed
+	pyinstaller --onefile --clean --name observing_transcriber watcher.py --windowed
+	cp settings.yaml dist/settings.yaml

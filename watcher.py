@@ -15,7 +15,7 @@ import multiprocessing
 def resolve_path(path):
     if getattr(sys, "frozen", False):
         # If the 'frozen' flag is set, we are in bundled-app mode!
-        resolved_path = Path(sys._MEIPASS) / path
+        resolved_path = Path(sys.executable).parent / path
     else:
         # Normal development mode. Use os.getcwd() or __file__ as appropriate in your case...
         resolved_path = Path(__file__).parent / path
@@ -23,7 +23,7 @@ def resolve_path(path):
     return resolved_path
 
 # clear last log
-open('watcher.log', 'w').close()
+open('watcher.log', 'w').close() 
 
 # log to file and console
 logging.basicConfig(
