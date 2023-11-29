@@ -18,11 +18,6 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Install Poetry
-      run: pip install poetry
-    - name: Install dependencies
-      run: make install
-
     - name: Build EXE
       run: make build_github_actions
 
