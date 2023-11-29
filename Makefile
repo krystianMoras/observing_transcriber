@@ -28,4 +28,4 @@ build_github_actions:
 	pyinstaller --onefile --clean --name observing_transcriber watcher.py --add-data "settings.yaml:."
 	cp settings.yaml dist/settings.yaml
 	# zip the dist folder
-	zip -r dist.zip dist
+	powershell Compress-Archive -Path dist/* -DestinationPath dist.zip
