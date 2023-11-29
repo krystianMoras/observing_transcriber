@@ -18,6 +18,10 @@ jobs:
       with:
         python-version: '3.11.3'
 
+    # add tag
+    - name: Add tag
+      run: git tag -a v${{ github.run_number }} -m "v${{ github.run_number }}"
+      
     - name: Build EXE
       run: make build_github_actions
 
