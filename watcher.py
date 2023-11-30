@@ -39,21 +39,35 @@ logger = logging.getLogger(__name__)
 
 SUPPORTED_FILETYPES = [".m4a", ".mp4", ".wav"]
 
-config = yaml.load(open(resolve_path("settings.yaml"), "r"), Loader=yaml.FullLoader)
+def read_config():
+
+    config = yaml.load(open(resolve_path("settings.yaml"), "r"), Loader=yaml.FullLoader)
+    paths_valid = True
 
 
-observed_path = Path(config["observed_path"])
-transcription_destination = Path(config["transcription_destination_path"])
+    observed_path = Path(config["observed_path"])
+    if not observed_path.exists():
+        paths_valid = False
+        observed_path = "Please select an observed path"
+    
+    transcription_destination = Path(config["transcription_destination_path"])
+    if not transcription_destination.exists():
+        paths_valid = False
+        transcription_destination = "Please select a transcription destination"
 
-if config.get("processed_files_path"):
-    processed_files_path = Path(config["processed_files_path"])
-else:
-    processed_files_path = None
+    if config.get("processed_files_path"):
+        processed_files_path = Path(config["processed_files_path"])
+        if not processed_files_path.exists():
+            paths_valid = False
+            processed_files_path = "Please select a processed files path"
+    else:
+        processed_files_path = None
 
-upload_lag = config.get("upload_lag", 5)
-model_path_or_id = config["model_path_or_id"]
-device = config["device"]
+    upload_lag = config.get("upload_lag", 5)
+    model_path_or_id = config["model_path_or_id"]
+    device = config["device"]
 
+    return config, observed_path, transcription_destination, processed_files_path, upload_lag, model_path_or_id, device, paths_valid
 
 def filter(change:Change, path:str):
     if change != Change.deleted and Path(path).suffix in SUPPORTED_FILETYPES:
@@ -121,6 +135,13 @@ async def process_recordings(observed_path:Path, transcription_destination:Path,
 
 async def watcher():
 
+
+    config, observed_path, transcription_destination, processed_files_path, upload_lag, model_path_or_id, device, paths_valid = read_config()
+
+    if not paths_valid:
+        logger.info("Paths are invalid, please select new paths")
+        return
+
     task = None
     logger.info(f"Processing existing files in {observed_path}")
 
@@ -142,14 +163,21 @@ def start_watcher():
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
+
+    config, observed_path, transcription_destination, processed_files_path, upload_lag, model_path_or_id, device, paths_valid = read_config()
+
+
     # create tkinter window
 
     root = tk.Tk()
-    asyncio_process = multiprocessing.Process(target=start_watcher)
+    asyncio_process = multiprocessing.Process(target=start_watcher, daemon=True)
 
-    def restart_thread(asyncio_process):
+    def restart_thread():
+        global asyncio_process
         logger.info("Restarting watcher with new settings")
         asyncio_process.terminate()
+        asyncio_process.join()
+        asyncio_process.close()
         asyncio_process = multiprocessing.Process(target=start_watcher)
         asyncio_process.start()
 
@@ -158,21 +186,21 @@ if __name__ == '__main__':
         config["observed_path"] = observed_path
         observed_path_label.config(text=f"Observed path: {observed_path}")
         yaml.dump(config, open(resolve_path("settings.yaml"), "w"), sort_keys=False)
-        restart_thread(asyncio_process)
+        restart_thread()
 
     def select_transcription_destination(transcription_destination_label):
         transcription_destination = filedialog.askdirectory()
         config["transcription_destination_path"] = transcription_destination
         transcription_destination_label.config(text=f"Transcription destination: {transcription_destination}")
         yaml.dump(config, open(resolve_path("settings.yaml"), "w"), sort_keys=False)
-        restart_thread(asyncio_process)
+        restart_thread()
 
     def select_processed_files_path(processed_files_path_label):
         processed_files_path = filedialog.askdirectory()
         config["processed_files_path"] = processed_files_path
         processed_files_path_label.config(text=f"Processed files path: {processed_files_path}")
         yaml.dump(config, open(resolve_path("settings.yaml"), "w"), sort_keys=False)
-        restart_thread(asyncio_process)
+        restart_thread()
 
     def select_model_path_or_id(model_path_or_id_label):
         input_path_or_id = model_path_or_id_input.get()
@@ -186,7 +214,7 @@ if __name__ == '__main__':
         config["model_path_or_id"] = model_path_or_id
         model_path_or_id_label.config(text=f"Model path or id: {model_path_or_id}")
         yaml.dump(config, open(resolve_path("settings.yaml"), "w"), sort_keys=False)
-        restart_thread(asyncio_process)
+        restart_thread()
 
     def select_device(device_label):
         # switch between cpu and gpu
@@ -195,14 +223,14 @@ if __name__ == '__main__':
         device_label.config(text=f"Device: {device}")
 
         yaml.dump(config, open(resolve_path("settings.yaml"), "w"), sort_keys=False)
-        restart_thread(asyncio_process)
+        restart_thread()
 
     def select_upload_lag(upload_lag_label):
         upload_lag = tk.simpledialog.askinteger("Upload lag", "Enter upload lag in seconds")
         upload_lag_label.config(text=f"Upload lag: {upload_lag}")
         config["upload_lag"] = upload_lag
         yaml.dump(config, open(resolve_path("settings.yaml"), "w"), sort_keys=False)
-        restart_thread(asyncio_process)
+        restart_thread()
 
     def enable_processed_files_path(processed_files_path_label, processed_files_path_button):
         if save_files.get():
@@ -214,7 +242,7 @@ if __name__ == '__main__':
             processed_files_path_button.config(state="disabled")
             config["processed_files_path"] = None
             yaml.dump(config, open(resolve_path("settings.yaml"), "w"), sort_keys=False)
-            restart_thread(asyncio_process)
+            restart_thread()
 
     root.title("Whisper Watcher")
 
@@ -293,6 +321,8 @@ if __name__ == '__main__':
 
     def on_close():
         asyncio_process.terminate()
+        asyncio_process.join()
+        asyncio_process.close()
         root.destroy()
 
     root.protocol("WM_DELETE_WINDOW", on_close)
