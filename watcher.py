@@ -11,6 +11,7 @@ import sys
 import tkinter as tk
 import tkinter.filedialog as filedialog
 import multiprocessing
+from contextlib import redirect_stderr
 
 def resolve_path(path):
     if getattr(sys, "frozen", False):
@@ -23,14 +24,14 @@ def resolve_path(path):
     return resolved_path
 
 # clear last log
-open('watcher.log', 'w').close() 
+open(resolve_path('watcher.log'), 'w').close() 
 
 # log to file and console
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler("watcher.log"),
+        logging.FileHandler(resolve_path('watcher.log')),
         logging.StreamHandler()
     ]
 )
@@ -89,33 +90,33 @@ async def process_recordings(observed_path:Path, transcription_destination:Path,
 
     paths_to_audio_files = [file for file in observed_path.iterdir() if file.suffix in SUPPORTED_FILETYPES]
     logger.info(f"Found {len(paths_to_audio_files)} audio files to transcribe")
+    with redirect_stderr(open(resolve_path("watcher.log"), "a")):
+        if len(paths_to_audio_files) > 0:    
+            model = WhisperModel(model_path_or_id, device=device, compute_type="default", download_root=resolve_path("models"))
 
-    if len(paths_to_audio_files) > 0:    
-        model = WhisperModel(model_path_or_id, device=device, compute_type="default")
+            for file in paths_to_audio_files:
+                # transcribe
+                logger.info(f"Transcribing {file.as_posix()}")
+                segments, _ = model.transcribe(file.as_posix())
+                segments = list(segments)
+                
+                logger.info(f"Transcribed")
 
-        for file in paths_to_audio_files:
-            # transcribe
-            logger.info(f"Transcribing {file.as_posix()}")
-            segments, _ = model.transcribe(file.as_posix())
-            segments = list(segments)
-            
-            logger.info(f"Transcribed")
+                # write srt file
+                srt_file = transcription_destination / f"{file.stem}.srt"
+                logger.info(f"Writing srt file to {srt_file.as_posix()}")
+                with srt_file.open("w") as f:
+                    f.write(segments_to_srt(segments))
 
-            # write srt file
-            srt_file = transcription_destination / f"{file.stem}.srt"
-            logger.info(f"Writing srt file to {srt_file.as_posix()}")
-            with srt_file.open("w") as f:
-                f.write(segments_to_srt(segments))
+                # move file to processed_files_path
+                if processed_files_path:
+                    logger.info(f"Moving file to {processed_files_path.as_posix()}")
+                    new_file_path = processed_files_path / file.name
+                    shutil.move(file, new_file_path)
 
-            # move file to processed_files_path
-            if processed_files_path:
-                logger.info(f"Moving file to {processed_files_path.as_posix()}")
-                new_file_path = processed_files_path / file.name
-                shutil.move(file, new_file_path)
-
-            else:
-                logger.info(f"Deleting file {file.as_posix()}")
-                file.unlink()
+                else:
+                    logger.info(f"Deleting file {file.as_posix()}")
+                    file.unlink()
 
 
 async def watcher():
@@ -277,7 +278,7 @@ if __name__ == '__main__':
     # view logs
 
     def view_logs():
-        logs = open("watcher.log", "r").read()
+        logs = open(resolve_path("watcher.log"), "r").read()
         logs_window = tk.Toplevel(root)
         logs_window.title("Logs")
         logs_window.geometry("500x500")

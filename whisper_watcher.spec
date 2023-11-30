@@ -21,7 +21,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='observing_transcriber',
+    name='whisper_watcher',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
